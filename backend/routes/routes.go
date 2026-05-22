@@ -4,6 +4,7 @@ import (
 	"net/http"
 
 	"backendsiswa/controllers"
+	"backendsiswa/middleware"
 
 	"github.com/gin-gonic/gin"
 )
@@ -38,13 +39,43 @@ func SetupRouter() *gin.Engine {
 
 	api := r.Group("/api")
 	{
-		kabupatens := api.Group("/kabupatens")
+		auth := api.Group("/auth")
 		{
-			kabupatens.GET("", controllers.GetKabupatens)
-			kabupatens.GET("/:id", controllers.GetKabupatenByID)
-			kabupatens.POST("", controllers.CreateKabupaten)
-			kabupatens.PUT("/:id", controllers.UpdateKabupaten)
-			kabupatens.DELETE("/:id", controllers.DeleteKabupaten)
+			auth.POST("/login", controllers.Login)
+			auth.POST("/register", controllers.Register)
+		}
+
+		protected := api.Group("")
+		protected.Use(middleware.AuthMiddleware())
+		{
+			protected.GET("/auth/me", controllers.GetMe)
+
+			kabupatens := protected.Group("/kabupatens")
+			{
+				kabupatens.GET("", controllers.GetKabupatens)
+				kabupatens.GET("/:id", controllers.GetKabupatenByID)
+				kabupatens.POST("", controllers.CreateKabupaten)
+				kabupatens.PUT("/:id", controllers.UpdateKabupaten)
+				kabupatens.DELETE("/:id", controllers.DeleteKabupaten)
+			}
+
+			kecamatans := protected.Group("/kecamatans")
+			{
+				kecamatans.GET("", controllers.GetKecamatans)
+				kecamatans.GET("/:id", controllers.GetKecamatanByID)
+				kecamatans.POST("", controllers.CreateKecamatan)
+				kecamatans.PUT("/:id", controllers.UpdateKecamatan)
+				kecamatans.DELETE("/:id", controllers.DeleteKecamatan)
+			}
+
+			siswas := protected.Group("/siswas")
+			{
+				siswas.GET("", controllers.GetSiswas)
+				siswas.GET("/:id", controllers.GetSiswaByID)
+				siswas.POST("", controllers.CreateSiswa)
+				siswas.PUT("/:id", controllers.UpdateSiswa)
+				siswas.DELETE("/:id", controllers.DeleteSiswa)
+			}
 		}
 	}
 

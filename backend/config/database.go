@@ -61,7 +61,7 @@ func ConnectDatabase() {
 
 	log.Printf("Successfully connected to MySQL database: %s", dbName)
 
-	err = database.AutoMigrate(&models.Kabupaten{}, &models.Kecamatan{}, &models.Siswa{})
+	err = database.AutoMigrate(&models.Kabupaten{}, &models.Kecamatan{}, &models.Siswa{}, &models.User{})
 	if err != nil {
 		log.Fatalf("Failed to run database auto-migrations: %v", err)
 	}

@@ -40,4 +40,5 @@ require (
 	google.golang.org/protobuf v1.36.10 // indirect
 	gorm.io/driver/mysql v1.6.0 // indirect
 	gorm.io/gorm v1.31.1 // indirect
+	github.com/golang-jwt/jwt/v5 v5.3.1 // indirect
 )
