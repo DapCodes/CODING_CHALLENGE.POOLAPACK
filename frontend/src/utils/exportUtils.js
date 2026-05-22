@@ -2,21 +2,21 @@ import * as XLSX from 'xlsx';
 import jsPDF from 'jspdf';
 import autoTable from 'jspdf-autotable';
 
-// ───────────────────────────────────────
-//  EXCEL EXPORT  (professional styling)
-// ───────────────────────────────────────
+
+
+
 export function exportToExcel(data, columns, filename = 'export', sheetName = 'Data') {
-  // Build worksheet with header + rows
+
   const header = columns.map(c => c.label);
   const rows = data.map(row => columns.map(c => c.value(row) ?? ''));
 
   const wsData = [header, ...rows];
   const ws = XLSX.utils.aoa_to_sheet(wsData);
 
-  // Column widths
+
   ws['!cols'] = columns.map(c => ({ wch: c.width || 20 }));
 
-  // Style header row
+
   const range = XLSX.utils.decode_range(ws['!ref']);
   for (let C = range.s.c; C <= range.e.c; C++) {
     const cellAddr = XLSX.utils.encode_cell({ r: 0, c: C });
@@ -34,7 +34,7 @@ export function exportToExcel(data, columns, filename = 'export', sheetName = 'D
     };
   }
 
-  // Style data rows with alternating bg
+
   for (let R = 1; R <= range.e.r; R++) {
     const isEven = R % 2 === 0;
     for (let C = range.s.c; C <= range.e.c; C++) {
@@ -57,17 +57,17 @@ export function exportToExcel(data, columns, filename = 'export', sheetName = 'D
   const wb = XLSX.utils.book_new();
   XLSX.utils.book_append_sheet(wb, ws, sheetName);
 
-  // Write with cellStyles support
+
   XLSX.writeFile(wb, `${filename}.xlsx`, { bookSST: false, cellStyles: true });
 }
 
-// ───────────────────────────────────────
-//  PDF EXPORT  (professional layout)
-// ───────────────────────────────────────
+
+
+
 export function exportToPDF(data, columns, filename = 'export', title = 'Data Export') {
   const doc = new jsPDF({ orientation: 'landscape', unit: 'mm', format: 'a4' });
 
-  // Header block
+
   const now = new Date().toLocaleString('id-ID', {
     dateStyle: 'long', timeStyle: 'short',
   });
@@ -84,7 +84,7 @@ export function exportToPDF(data, columns, filename = 'export', title = 'Data Ex
   doc.setFont('helvetica', 'normal');
   doc.text(`Dicetak: ${now}`, 297 - 14, 13, { align: 'right' });
 
-  // Total record badge
+
   doc.setFillColor(29, 78, 216);
   doc.roundedRect(14, 25, 55, 8, 2, 2, 'F');
   doc.setTextColor(255, 255, 255);
@@ -92,7 +92,7 @@ export function exportToPDF(data, columns, filename = 'export', title = 'Data Ex
   doc.setFont('helvetica', 'bold');
   doc.text(`Total: ${data.length} data`, 41.5, 30.5, { align: 'center' });
 
-  // Table
+
   autoTable(doc, {
     startY: 37,
     head: [columns.map(c => c.label)],
@@ -124,7 +124,7 @@ export function exportToPDF(data, columns, filename = 'export', title = 'Data Ex
     tableLineWidth: 0.2,
     margin: { left: 14, right: 14 },
     didDrawPage: (data) => {
-      // Footer with page number
+
       const pageCount = doc.internal.getNumberOfPages();
       doc.setFontSize(7);
       doc.setTextColor(100, 116, 139);
@@ -141,9 +141,9 @@ export function exportToPDF(data, columns, filename = 'export', title = 'Data Ex
   doc.save(`${filename}.pdf`);
 }
 
-// ───────────────────────────────────────
-//  EXCEL IMPORT  (robust parser)
-// ───────────────────────────────────────
+
+
+
 export function importFromExcel(file) {
   return new Promise((resolve, reject) => {
     const reader = new FileReader();
@@ -162,9 +162,9 @@ export function importFromExcel(file) {
   });
 }
 
-// ───────────────────────────────────────
-//  EXCEL TEMPLATE  download
-// ───────────────────────────────────────
+
+
+
 export function downloadTemplate(columns, filename = 'template') {
   const header = columns.map(c => c.label);
   const exampleRow = columns.map(c => c.example || '');
@@ -181,7 +181,7 @@ export function downloadTemplate(columns, filename = 'template') {
       alignment: { horizontal: 'center', vertical: 'center' },
     };
   }
-  // Style example row
+
   for (let C = range.s.c; C <= range.e.c; C++) {
     const addr = XLSX.utils.encode_cell({ r: 1, c: C });
     if (!ws[addr]) ws[addr] = { v: '', t: 's' };

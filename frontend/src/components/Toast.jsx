@@ -61,7 +61,7 @@ function ToastItem({ id, message, type, onRemove }) {
 
 export function ToastProvider({ children }) {
   const [toasts, setToasts] = useState([]);
-  const [confirm, setConfirm] = useState(null); // { message, resolve }
+  const [confirm, setConfirm] = useState(null);
 
   const addToast = useCallback((message, type = 'info') => {
     const id = Date.now() + Math.random();
@@ -90,7 +90,7 @@ export function ToastProvider({ children }) {
     <ToastContext.Provider value={{ addToast, showConfirm }}>
       {children}
 
-      {/* Toast stack */}
+      {}
       {createPortal(
         <div style={{
           position: 'fixed',
@@ -114,7 +114,7 @@ export function ToastProvider({ children }) {
         document.body
       )}
 
-      {/* Confirm dialog */}
+      {}
       {confirm && createPortal(
         <div style={{
           position: 'fixed', inset: 0,

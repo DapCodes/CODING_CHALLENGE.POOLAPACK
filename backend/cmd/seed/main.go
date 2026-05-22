@@ -37,13 +37,13 @@ func main() {
 	log.Println("Connected. Running auto-migrate...")
 	db.AutoMigrate(&models.Kabupaten{}, &models.Kecamatan{}, &models.Siswa{}, &models.User{})
 
-	// ─── Seed Users ───────────────────────────────────────────────────────────
+
 	log.Println("Seeding users...")
 	hashed, _ := bcrypt.GenerateFromPassword([]byte("password123"), bcrypt.DefaultCost)
 	db.FirstOrCreate(&models.User{}, models.User{Username: "admin"}).Update("password", string(hashed))
 	db.Where("username = ?", "admin").FirstOrCreate(&models.User{Username: "admin", Password: string(hashed)})
 
-	// ─── Seed Kabupaten ───────────────────────────────────────────────────────
+
 	log.Println("Seeding kabupaten...")
 	kabupatens := []models.Kabupaten{
 		{Nama: "Kota Bandung"},
@@ -60,7 +60,7 @@ func main() {
 		}
 	}
 
-	// helper
+
 	getKabID := func(nama string) uint {
 		for _, k := range kabupatens {
 			if k.Nama == nama { return k.ID }
@@ -68,7 +68,7 @@ func main() {
 		return 0
 	}
 
-	// ─── Seed Kecamatan ───────────────────────────────────────────────────────
+
 	log.Println("Seeding kecamatan...")
 	kecamatanData := []struct {
 		Nama        string
@@ -98,7 +98,7 @@ func main() {
 		}
 	}
 
-	// ─── Seed Siswa ───────────────────────────────────────────────────────────
+
 	log.Println("Seeding siswa...")
 	siswaData := []struct {
 		Nama          string

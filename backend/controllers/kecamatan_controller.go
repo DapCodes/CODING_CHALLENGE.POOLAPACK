@@ -37,7 +37,7 @@ func CreateKecamatan(c *gin.Context) {
 		return
 	}
 
-	// Validate if Kabupaten exists
+
 	var kabupaten models.Kabupaten
 	if err := config.DB.First(&kabupaten, input.KabupatenID).Error; err != nil {
 		c.JSON(http.StatusBadRequest, gin.H{"error": "Invalid id_kota_kabupaten. Kabupaten does not exist."})
@@ -54,7 +54,7 @@ func CreateKecamatan(c *gin.Context) {
 		return
 	}
 
-	// Fetch with preloaded Kabupaten details for response
+
 	config.DB.Preload("Kabupaten").First(&kecamatan, kecamatan.ID)
 	c.JSON(http.StatusCreated, kecamatan)
 }
@@ -74,7 +74,7 @@ func UpdateKecamatan(c *gin.Context) {
 		return
 	}
 
-	// If updating Kabupaten ID, validate it exists
+
 	if input.KabupatenID != 0 && input.KabupatenID != kecamatan.KabupatenID {
 		var kabupaten models.Kabupaten
 		if err := config.DB.First(&kabupaten, input.KabupatenID).Error; err != nil {
@@ -88,7 +88,7 @@ func UpdateKecamatan(c *gin.Context) {
 		return
 	}
 
-	// Fetch updated data with preloaded Kabupaten details
+
 	config.DB.Preload("Kabupaten").First(&kecamatan, kecamatan.ID)
 	c.JSON(http.StatusOK, kecamatan)
 }
@@ -102,7 +102,7 @@ func DeleteKecamatan(c *gin.Context) {
 		return
 	}
 
-	// Restrict delete if there are referencing Siswas
+
 	var count int64
 	config.DB.Model(&models.Siswa{}).Where("id_kecamatan = ?", id).Count(&count)
 	if count > 0 {

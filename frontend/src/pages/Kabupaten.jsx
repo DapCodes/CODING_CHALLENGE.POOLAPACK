@@ -30,7 +30,7 @@ const Kabupaten = () => {
 
   useEffect(() => { fetchData(); }, []);
 
-  // Close export menu on outside click
+
   useEffect(() => {
     const handler = (e) => {
       if (exportMenuRef.current && !exportMenuRef.current.contains(e.target)) setShowExportMenu(false);
@@ -93,7 +93,7 @@ const Kabupaten = () => {
     }
   };
 
-  // ── Import Excel ──────────────────────────────────────────
+
   const handleImport = async (e) => {
     const file = e.target.files?.[0];
     if (!file) return;
@@ -121,7 +121,7 @@ const Kabupaten = () => {
     }
   };
 
-  // ── Filters & Pagination ──────────────────────────────────
+
   const filtered = data.filter(item =>
     item.nama?.toLowerCase().includes(search.toLowerCase())
   );
@@ -133,17 +133,17 @@ const Kabupaten = () => {
 
   return (
     <div>
-      {/* ── Header ── */}
+      {}
       <div className="header-actions">
         <h2>Data Kabupaten / Kota</h2>
         <div className="header-btn-group">
-          {/* Import */}
+          {}
           <button className="btn btn-import" onClick={() => fileInputRef.current?.click()} disabled={importing} title="Import dari Excel">
             <FileUp size={16} /> {importing ? 'Importing…' : 'Import Excel'}
           </button>
           <input ref={fileInputRef} type="file" accept=".xlsx,.xls" style={{ display: 'none' }} onChange={handleImport} />
 
-          {/* Download Template */}
+          {}
           <button
             className="btn btn-template"
             onClick={() => downloadTemplate(IMPORT_TEMPLATE_COLS, 'kabupaten')}
@@ -152,7 +152,7 @@ const Kabupaten = () => {
             <Download size={16} /> Template
           </button>
 
-          {/* Export dropdown */}
+          {}
           <div ref={exportMenuRef} style={{ position: 'relative' }}>
             <button className="btn btn-export" onClick={() => setShowExportMenu(v => !v)}>
               <FileDown size={16} /> Export ▾
@@ -169,14 +169,14 @@ const Kabupaten = () => {
             )}
           </div>
 
-          {/* Add */}
+          {}
           <button className="btn btn-primary" onClick={() => handleOpenModal()} style={{ width: 'auto' }}>
             <Plus size={16} /> Tambah
           </button>
         </div>
       </div>
 
-      {/* ── Search ── */}
+      {}
       <div className="search-bar">
         <Search size={18} style={{ color: 'var(--text-secondary)', flexShrink: 0 }} />
         <input
@@ -188,7 +188,7 @@ const Kabupaten = () => {
         <span className="search-count">{filtered.length} hasil</span>
       </div>
 
-      {/* ── Table ── */}
+      {}
       <div className="table-wrapper">
         <table>
           <thead>
@@ -228,7 +228,7 @@ const Kabupaten = () => {
         </table>
       </div>
 
-      {/* ── Pagination ── */}
+      {}
       <Pagination
         currentPage={safePage}
         totalPages={totalPages}
@@ -238,7 +238,7 @@ const Kabupaten = () => {
         onItemsPerPageChange={setItemsPerPage}
       />
 
-      {/* ── Modal ── */}
+      {}
       {isModalOpen && createPortal(
         <div className="modal-overlay">
           <div className="glass-panel modal-panel" style={{ position: 'relative' }}>

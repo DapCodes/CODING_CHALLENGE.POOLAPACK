@@ -84,7 +84,7 @@ func Register(c *gin.Context) {
 		return
 	}
 
-	// Check if username already exists
+
 	var count int64
 	config.DB.Model(&models.User{}).Where("username = ?", input.Username).Count(&count)
 	if count > 0 {

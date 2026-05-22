@@ -104,7 +104,7 @@ const Kecamatan = () => {
     return kab ? kab.nama : String(id);
   };
 
-  // ── Import Excel ──────────────────────────────────────────
+
   const handleImport = async (e) => {
     const file = e.target.files?.[0];
     if (!file) return;
@@ -133,7 +133,7 @@ const Kecamatan = () => {
     }
   };
 
-  // ── Filters & Pagination ──────────────────────────────────
+
   const filtered = data.filter(item => {
     const q = search.toLowerCase();
     return (
@@ -149,7 +149,7 @@ const Kecamatan = () => {
 
   return (
     <div>
-      {/* ── Header ── */}
+      {}
       <div className="header-actions">
         <h2>Data Kecamatan</h2>
         <div className="header-btn-group">
@@ -184,7 +184,7 @@ const Kecamatan = () => {
         </div>
       </div>
 
-      {/* ── Search ── */}
+      {}
       <div className="search-bar">
         <Search size={18} style={{ color: 'var(--text-secondary)', flexShrink: 0 }} />
         <input
@@ -196,7 +196,7 @@ const Kecamatan = () => {
         <span className="search-count">{filtered.length} hasil</span>
       </div>
 
-      {/* ── Table ── */}
+      {}
       <div className="table-wrapper">
         <table>
           <thead>
@@ -249,7 +249,7 @@ const Kecamatan = () => {
         onItemsPerPageChange={setItemsPerPage}
       />
 
-      {/* ── Modal ── */}
+      {}
       {isModalOpen && createPortal(
         <div className="modal-overlay">
           <div className="glass-panel modal-panel" style={{ position: 'relative' }}>

@@ -118,7 +118,7 @@ const Siswa = () => {
     ? kecamatans.filter(k => k.id_kota_kabupaten === parseInt(formData.id_kota_kabupaten))
     : [];
 
-  // ── Import Excel ──────────────────────────────────────────
+
   const handleImport = async (e) => {
     const file = e.target.files?.[0];
     if (!file) return;
@@ -149,7 +149,7 @@ const Siswa = () => {
     }
   };
 
-  // ── Filters & Pagination ──────────────────────────────────
+
   const filtered = data.filter(item => {
     const q = search.toLowerCase();
     return (
@@ -167,7 +167,7 @@ const Siswa = () => {
 
   return (
     <div>
-      {/* ── Header ── */}
+      {}
       <div className="header-actions">
         <h2>Data Siswa</h2>
         <div className="header-btn-group">
@@ -202,7 +202,7 @@ const Siswa = () => {
         </div>
       </div>
 
-      {/* ── Search ── */}
+      {}
       <div className="search-bar">
         <Search size={18} style={{ color: 'var(--text-secondary)', flexShrink: 0 }} />
         <input
@@ -214,7 +214,7 @@ const Siswa = () => {
         <span className="search-count">{filtered.length} hasil</span>
       </div>
 
-      {/* ── Table ── */}
+      {}
       <div className="table-wrapper">
         <table>
           <thead>
@@ -269,7 +269,7 @@ const Siswa = () => {
         onItemsPerPageChange={setItemsPerPage}
       />
 
-      {/* ── Modal ── */}
+      {}
       {isModalOpen && createPortal(
         <div className="modal-overlay">
           <div className="glass-panel modal-panel" style={{ position: 'relative' }}>

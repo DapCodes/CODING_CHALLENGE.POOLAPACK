@@ -26,7 +26,7 @@ const Layout = ({ children }) => {
           PSM
         </div>
 
-        {/* Desktop nav */}
+        {}
         <div className="nav-links desktop-nav">
           {navItems.map((item) => (
             <Link
@@ -43,7 +43,7 @@ const Layout = ({ children }) => {
           <button onClick={handleLogout} className="btn btn-ghost desktop-nav" style={{ gap: '0.4rem' }}>
             <LogOut size={16} /> Logout
           </button>
-          {/* Hamburger */}
+          {}
           <button
             className="btn btn-ghost mobile-nav"
             onClick={() => setMenuOpen(!menuOpen)}
@@ -54,7 +54,7 @@ const Layout = ({ children }) => {
         </div>
       </nav>
 
-      {/* Mobile drawer */}
+      {}
       {menuOpen && (
         <div className="mobile-drawer">
           {navItems.map((item) => (

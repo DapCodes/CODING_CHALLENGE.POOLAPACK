@@ -37,21 +37,21 @@ func CreateSiswa(c *gin.Context) {
 		return
 	}
 
-	// Validate Kabupaten existence
+
 	var kabupaten models.Kabupaten
 	if err := config.DB.First(&kabupaten, input.KabupatenID).Error; err != nil {
 		c.JSON(http.StatusBadRequest, gin.H{"error": "Invalid id_kota_kabupaten. Kabupaten does not exist."})
 		return
 	}
 
-	// Validate Kecamatan existence
+
 	var kecamatan models.Kecamatan
 	if err := config.DB.First(&kecamatan, input.KecamatanID).Error; err != nil {
 		c.JSON(http.StatusBadRequest, gin.H{"error": "Invalid id_kecamatan. Kecamatan does not exist."})
 		return
 	}
 
-	// Validate that the Kecamatan belongs to the Kabupaten
+
 	if kecamatan.KabupatenID != input.KabupatenID {
 		c.JSON(http.StatusBadRequest, gin.H{
 			"error": "Data inconsistency: The selected Kecamatan does not belong to the selected Kabupaten.",
