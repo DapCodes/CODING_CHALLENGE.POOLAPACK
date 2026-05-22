@@ -5,7 +5,7 @@ import (
 	"log"
 	"os"
 
-	"backend/models"
+	"backendsiswa/models"
 
 	"github.com/joho/godotenv"
 	"gorm.io/driver/mysql"
