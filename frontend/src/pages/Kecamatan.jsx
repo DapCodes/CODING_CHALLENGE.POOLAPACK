@@ -1,12 +1,13 @@
 import { useState, useEffect } from 'react';
 import { createPortal } from 'react-dom';
 import api from '../api';
-import { Plus, Edit2, Trash2, X } from 'lucide-react';
+import { Plus, Edit2, Trash2, X, Search } from 'lucide-react';
 import { useToast } from '../components/Toast';
 
 const Kecamatan = () => {
   const [data, setData] = useState([]);
   const [kabupatens, setKabupatens] = useState([]);
+  const [search, setSearch] = useState('');
   const [isModalOpen, setModalOpen] = useState(false);
   const [editingId, setEditingId] = useState(null);
   const [formData, setFormData] = useState({ id_kota_kabupaten: '', nama: '' });
@@ -88,6 +89,14 @@ const Kecamatan = () => {
     return kab ? kab.nama : id;
   };
 
+  const filtered = data.filter(item => {
+    const q = search.toLowerCase();
+    return (
+      item.nama?.toLowerCase().includes(q) ||
+      (item.Kabupaten?.nama || getKabupatenName(item.id_kota_kabupaten))?.toLowerCase().includes(q)
+    );
+  });
+
   return (
     <div>
       <div className="header-actions">
@@ -97,42 +106,55 @@ const Kecamatan = () => {
         </button>
       </div>
 
-      <table>
-        <thead>
-          <tr>
-            <th>ID</th>
-            <th>Nama Kecamatan</th>
-            <th>Kabupaten</th>
-            <th style={{ width: '150px' }}>Actions</th>
-          </tr>
-        </thead>
-        <tbody>
-          {data.map(item => (
-            <tr key={item.id_kecamatan}>
-              <td>{item.id_kecamatan}</td>
-              <td>{item.nama}</td>
-              <td>
-                <span className="badge">{item.Kabupaten?.nama || getKabupatenName(item.id_kota_kabupaten)}</span>
-              </td>
-              <td>
-                <div className="action-buttons">
-                  <button className="btn btn-ghost btn-icon" onClick={() => handleOpenModal(item)}>
-                    <Edit2 size={16} />
-                  </button>
-                  <button className="btn btn-danger btn-icon" onClick={() => handleDelete(item.id_kecamatan)}>
-                    <Trash2 size={16} />
-                  </button>
-                </div>
-              </td>
-            </tr>
-          ))}
-          {data.length === 0 && (
+      <div className="search-bar">
+        <Search size={18} style={{ color: 'var(--text-secondary)', flexShrink: 0 }} />
+        <input
+          type="text"
+          placeholder="Search kecamatan atau kabupaten..."
+          value={search}
+          onChange={(e) => setSearch(e.target.value)}
+        />
+        <span className="search-count">{filtered.length} result{filtered.length !== 1 ? 's' : ''}</span>
+      </div>
+
+      <div className="table-wrapper">
+        <table>
+          <thead>
             <tr>
-              <td colSpan="4" style={{ textAlign: 'center', color: 'var(--text-secondary)' }}>No data found</td>
+              <th>ID</th>
+              <th>Nama Kecamatan</th>
+              <th>Kabupaten</th>
+              <th style={{ width: '120px' }}>Actions</th>
             </tr>
-          )}
-        </tbody>
-      </table>
+          </thead>
+          <tbody>
+            {filtered.map(item => (
+              <tr key={item.id_kecamatan}>
+                <td>{item.id_kecamatan}</td>
+                <td>{item.nama}</td>
+                <td>
+                  <span className="badge">{item.Kabupaten?.nama || getKabupatenName(item.id_kota_kabupaten)}</span>
+                </td>
+                <td>
+                  <div className="action-buttons">
+                    <button className="btn btn-ghost btn-icon" onClick={() => handleOpenModal(item)}>
+                      <Edit2 size={16} />
+                    </button>
+                    <button className="btn btn-danger btn-icon" onClick={() => handleDelete(item.id_kecamatan)}>
+                      <Trash2 size={16} />
+                    </button>
+                  </div>
+                </td>
+              </tr>
+            ))}
+            {data.length === 0 && (
+              <tr>
+                <td colSpan="4" style={{ textAlign: 'center', color: 'var(--text-secondary)' }}>No data found</td>
+              </tr>
+            )}
+          </tbody>
+        </table>
+      </div>
 
       {isModalOpen && createPortal(
         <div className="modal-overlay">

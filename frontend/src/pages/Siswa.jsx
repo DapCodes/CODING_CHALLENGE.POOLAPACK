@@ -1,13 +1,14 @@
 import { useState, useEffect } from 'react';
 import { createPortal } from 'react-dom';
 import api from '../api';
-import { Plus, Edit2, Trash2, X } from 'lucide-react';
+import { Plus, Edit2, Trash2, X, Search } from 'lucide-react';
 import { useToast } from '../components/Toast';
 
 const Siswa = () => {
   const [data, setData] = useState([]);
   const [kabupatens, setKabupatens] = useState([]);
   const [kecamatans, setKecamatans] = useState([]);
+  const [search, setSearch] = useState('');
   const [isModalOpen, setModalOpen] = useState(false);
   const [editingId, setEditingId] = useState(null);
   const { addToast, showConfirm } = useToast();
@@ -125,6 +126,16 @@ const Siswa = () => {
     ? kecamatans.filter(k => k.id_kota_kabupaten === parseInt(formData.id_kota_kabupaten))
     : [];
 
+  const filtered = data.filter(item => {
+    const q = search.toLowerCase();
+    return (
+      item.nama_siswa?.toLowerCase().includes(q) ||
+      item.alamat?.toLowerCase().includes(q) ||
+      (item.Kabupaten?.nama || getKabupatenName(item.id_kota_kabupaten))?.toLowerCase().includes(q) ||
+      (item.Kecamatan?.nama || getKecamatanName(item.id_kecamatan))?.toLowerCase().includes(q)
+    );
+  });
+
   return (
     <div>
       <div className="header-actions">
@@ -134,48 +145,61 @@ const Siswa = () => {
         </button>
       </div>
 
-      <table>
-        <thead>
-          <tr>
-            <th>ID</th>
-            <th>Nama Siswa</th>
-            <th>Alamat</th>
-            <th>Kabupaten</th>
-            <th>Kecamatan</th>
-            <th style={{ width: '150px' }}>Actions</th>
-          </tr>
-        </thead>
-        <tbody>
-          {data.map(item => (
-            <tr key={item.id_siswa}>
-              <td>{item.id_siswa}</td>
-              <td>{item.nama_siswa}</td>
-              <td>{item.alamat}</td>
-              <td>
-                <span className="badge">{item.Kabupaten?.nama || getKabupatenName(item.id_kota_kabupaten)}</span>
-              </td>
-              <td>
-                <span className="badge">{item.Kecamatan?.nama || getKecamatanName(item.id_kecamatan)}</span>
-              </td>
-              <td>
-                <div className="action-buttons">
-                  <button className="btn btn-ghost btn-icon" onClick={() => handleOpenModal(item)}>
-                    <Edit2 size={16} />
-                  </button>
-                  <button className="btn btn-danger btn-icon" onClick={() => handleDelete(item.id_siswa)}>
-                    <Trash2 size={16} />
-                  </button>
-                </div>
-              </td>
-            </tr>
-          ))}
-          {data.length === 0 && (
+      <div className="search-bar">
+        <Search size={18} style={{ color: 'var(--text-secondary)', flexShrink: 0 }} />
+        <input
+          type="text"
+          placeholder="Search nama, alamat, kabupaten, kecamatan..."
+          value={search}
+          onChange={(e) => setSearch(e.target.value)}
+        />
+        <span className="search-count">{filtered.length} result{filtered.length !== 1 ? 's' : ''}</span>
+      </div>
+
+      <div className="table-wrapper">
+        <table>
+          <thead>
             <tr>
-              <td colSpan="6" style={{ textAlign: 'center', color: 'var(--text-secondary)' }}>No data found</td>
+              <th>ID</th>
+              <th>Nama Siswa</th>
+              <th>Alamat</th>
+              <th>Kabupaten</th>
+              <th>Kecamatan</th>
+              <th style={{ width: '100px' }}>Actions</th>
             </tr>
-          )}
-        </tbody>
-      </table>
+          </thead>
+          <tbody>
+            {filtered.map(item => (
+              <tr key={item.id_siswa}>
+                <td>{item.id_siswa}</td>
+                <td>{item.nama_siswa}</td>
+                <td>{item.alamat}</td>
+                <td>
+                  <span className="badge">{item.Kabupaten?.nama || getKabupatenName(item.id_kota_kabupaten)}</span>
+                </td>
+                <td>
+                  <span className="badge">{item.Kecamatan?.nama || getKecamatanName(item.id_kecamatan)}</span>
+                </td>
+                <td>
+                  <div className="action-buttons">
+                    <button className="btn btn-ghost btn-icon" onClick={() => handleOpenModal(item)}>
+                      <Edit2 size={16} />
+                    </button>
+                    <button className="btn btn-danger btn-icon" onClick={() => handleDelete(item.id_siswa)}>
+                      <Trash2 size={16} />
+                    </button>
+                  </div>
+                </td>
+              </tr>
+            ))}
+            {data.length === 0 && (
+              <tr>
+                <td colSpan="6" style={{ textAlign: 'center', color: 'var(--text-secondary)' }}>No data found</td>
+              </tr>
+            )}
+          </tbody>
+        </table>
+      </div>
 
       {isModalOpen && createPortal(
         <div className="modal-overlay">
