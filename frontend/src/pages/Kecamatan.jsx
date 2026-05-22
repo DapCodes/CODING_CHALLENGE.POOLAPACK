@@ -1,39 +1,54 @@
-import { useState, useEffect } from 'react';
+import { useState, useEffect, useRef } from 'react';
 import { createPortal } from 'react-dom';
 import api from '../api';
-import { Plus, Edit2, Trash2, X, Search } from 'lucide-react';
+import { Plus, Edit2, Trash2, X, Search, FileDown, FileUp, FileText, Download } from 'lucide-react';
 import { useToast } from '../components/Toast';
+import Pagination from '../components/Pagination';
+import { exportToExcel, exportToPDF, importFromExcel, downloadTemplate } from '../utils/exportUtils';
+
+const COLUMNS_EXPORT = [
+  { label: 'ID', value: r => r.id_kecamatan, width: 8, pdfWidth: 15, align: 'center' },
+  { label: 'Nama Kecamatan', value: r => r.nama, width: 30, pdfWidth: 'auto' },
+  { label: 'Kabupaten / Kota', value: r => r.Kabupaten?.nama || r.id_kota_kabupaten, width: 30, pdfWidth: 'auto' },
+];
+const IMPORT_TEMPLATE_COLS = [
+  { label: 'nama', width: 30, example: 'Coblong' },
+  { label: 'id_kota_kabupaten', width: 18, example: '1' },
+];
 
 const Kecamatan = () => {
-  const [data, setData] = useState([]);
+  const [data, setData]           = useState([]);
   const [kabupatens, setKabupatens] = useState([]);
-  const [search, setSearch] = useState('');
+  const [search, setSearch]       = useState('');
   const [isModalOpen, setModalOpen] = useState(false);
   const [editingId, setEditingId] = useState(null);
-  const [formData, setFormData] = useState({ id_kota_kabupaten: '', nama: '' });
+  const [formData, setFormData]   = useState({ id_kota_kabupaten: '', nama: '' });
+  const [currentPage, setCurrentPage] = useState(1);
+  const [itemsPerPage, setItemsPerPage] = useState(10);
+  const [showExportMenu, setShowExportMenu] = useState(false);
+  const [importing, setImporting] = useState(false);
+  const fileInputRef = useRef();
+  const exportMenuRef = useRef();
   const { addToast, showConfirm } = useToast();
 
+  useEffect(() => { fetchData(); fetchKabupatens(); }, []);
+
   useEffect(() => {
-    fetchData();
-    fetchKabupatens();
+    const handler = (e) => {
+      if (exportMenuRef.current && !exportMenuRef.current.contains(e.target)) setShowExportMenu(false);
+    };
+    document.addEventListener('mousedown', handler);
+    return () => document.removeEventListener('mousedown', handler);
   }, []);
 
   const fetchData = async () => {
-    try {
-      const res = await api.get('/kecamatans');
-      setData(res.data);
-    } catch (err) {
-      console.error(err);
-    }
+    try { const res = await api.get('/kecamatans'); setData(res.data); }
+    catch (err) { console.error(err); }
   };
 
   const fetchKabupatens = async () => {
-    try {
-      const res = await api.get('/kabupatens');
-      setKabupatens(res.data);
-    } catch (err) {
-      console.error(err);
-    }
+    try { const res = await api.get('/kabupatens'); setKabupatens(res.data); }
+    catch (err) { console.error(err); }
   };
 
   const handleOpenModal = (item = null) => {
@@ -59,36 +74,66 @@ const Kecamatan = () => {
       const payload = { nama: formData.nama, id_kota_kabupaten: parseInt(formData.id_kota_kabupaten) };
       if (editingId) {
         await api.put(`/kecamatans/${editingId}`, payload);
-        addToast('Kecamatan updated successfully!', 'success');
+        addToast('Kecamatan berhasil diupdate!', 'success');
       } else {
         await api.post('/kecamatans', payload);
-        addToast('Kecamatan created successfully!', 'success');
+        addToast('Kecamatan berhasil ditambahkan!', 'success');
       }
       fetchData();
       handleCloseModal();
     } catch (err) {
-      addToast(err.response?.data?.error || 'Error saving data', 'error');
+      addToast(err.response?.data?.error || 'Error menyimpan data', 'error');
     }
   };
 
   const handleDelete = async (id) => {
-    const confirmed = await showConfirm('Are you sure you want to delete this Kecamatan?');
+    const confirmed = await showConfirm('Yakin ingin menghapus Kecamatan ini?');
     if (confirmed) {
       try {
         await api.delete(`/kecamatans/${id}`);
-        addToast('Kecamatan deleted successfully!', 'success');
+        addToast('Kecamatan berhasil dihapus!', 'success');
         fetchData();
       } catch (err) {
-        addToast(err.response?.data?.error || 'Error deleting data', 'error');
+        addToast(err.response?.data?.error || 'Error menghapus data', 'error');
       }
     }
   };
 
   const getKabupatenName = (id) => {
     const kab = kabupatens.find(k => k.id_kota_kabupaten === id);
-    return kab ? kab.nama : id;
+    return kab ? kab.nama : String(id);
   };
 
+  // ── Import Excel ──────────────────────────────────────────
+  const handleImport = async (e) => {
+    const file = e.target.files?.[0];
+    if (!file) return;
+    e.target.value = '';
+    setImporting(true);
+    try {
+      const rows = await importFromExcel(file);
+      if (!rows.length) { addToast('File Excel kosong', 'error'); return; }
+
+      let success = 0, failed = 0;
+      for (const row of rows) {
+        const nama = String(row['nama'] || '').trim();
+        const id_kota_kabupaten = parseInt(row['id_kota_kabupaten']);
+        if (!nama || isNaN(id_kota_kabupaten)) { failed++; continue; }
+        try {
+          await api.post('/kecamatans', { nama, id_kota_kabupaten });
+          success++;
+        } catch { failed++; }
+      }
+      fetchData();
+      addToast(`Import selesai: ${success} berhasil${failed ? `, ${failed} gagal` : ''}`, success ? 'success' : 'error');
+    } catch (err) {
+      addToast(err.message, 'error');
+    } finally {
+      setImporting(false);
+    }
+  };
+
+  // ── Filters & Pagination ──────────────────────────────────
   const filtered = data.filter(item => {
     const q = search.toLowerCase();
     return (
@@ -97,105 +142,149 @@ const Kecamatan = () => {
     );
   });
 
+  const totalPages = Math.max(1, Math.ceil(filtered.length / itemsPerPage));
+  const safePage   = Math.min(currentPage, totalPages);
+  const paginated  = filtered.slice((safePage - 1) * itemsPerPage, safePage * itemsPerPage);
+  const handleSearch = (val) => { setSearch(val); setCurrentPage(1); };
+
   return (
     <div>
+      {/* ── Header ── */}
       <div className="header-actions">
         <h2>Data Kecamatan</h2>
-        <button className="btn btn-primary" onClick={() => handleOpenModal()} style={{ width: 'auto' }}>
-          <Plus size={18} /> Add Kecamatan
-        </button>
+        <div className="header-btn-group">
+          <button className="btn btn-import" onClick={() => fileInputRef.current?.click()} disabled={importing} title="Import dari Excel">
+            <FileUp size={16} /> {importing ? 'Importing…' : 'Import Excel'}
+          </button>
+          <input ref={fileInputRef} type="file" accept=".xlsx,.xls" style={{ display: 'none' }} onChange={handleImport} />
+
+          <button className="btn btn-template" onClick={() => downloadTemplate(IMPORT_TEMPLATE_COLS, 'kecamatan')} title="Download template">
+            <Download size={16} /> Template
+          </button>
+
+          <div ref={exportMenuRef} style={{ position: 'relative' }}>
+            <button className="btn btn-export" onClick={() => setShowExportMenu(v => !v)}>
+              <FileDown size={16} /> Export ▾
+            </button>
+            {showExportMenu && (
+              <div className="export-menu">
+                <button onClick={() => { exportToExcel(filtered, COLUMNS_EXPORT, 'kecamatan', 'Kecamatan'); setShowExportMenu(false); }}>
+                  <FileDown size={14} /> Export Excel
+                </button>
+                <button onClick={() => { exportToPDF(filtered, COLUMNS_EXPORT, 'kecamatan', 'Data Kecamatan'); setShowExportMenu(false); }}>
+                  <FileText size={14} /> Export PDF
+                </button>
+              </div>
+            )}
+          </div>
+
+          <button className="btn btn-primary" onClick={() => handleOpenModal()} style={{ width: 'auto' }}>
+            <Plus size={16} /> Tambah
+          </button>
+        </div>
       </div>
 
+      {/* ── Search ── */}
       <div className="search-bar">
         <Search size={18} style={{ color: 'var(--text-secondary)', flexShrink: 0 }} />
         <input
           type="text"
-          placeholder="Search kecamatan atau kabupaten..."
+          placeholder="Cari kecamatan atau kabupaten..."
           value={search}
-          onChange={(e) => setSearch(e.target.value)}
+          onChange={e => handleSearch(e.target.value)}
         />
-        <span className="search-count">{filtered.length} result{filtered.length !== 1 ? 's' : ''}</span>
+        <span className="search-count">{filtered.length} hasil</span>
       </div>
 
+      {/* ── Table ── */}
       <div className="table-wrapper">
         <table>
           <thead>
             <tr>
-              <th>ID</th>
+              <th style={{ width: '60px' }}>No</th>
+              <th style={{ width: '80px' }}>ID</th>
               <th>Nama Kecamatan</th>
-              <th>Kabupaten</th>
-              <th style={{ width: '120px' }}>Actions</th>
+              <th>Kabupaten / Kota</th>
+              <th style={{ width: '110px' }}>Aksi</th>
             </tr>
           </thead>
           <tbody>
-            {filtered.map(item => (
+            {paginated.map((item, idx) => (
               <tr key={item.id_kecamatan}>
-                <td>{item.id_kecamatan}</td>
-                <td>{item.nama}</td>
+                <td className="td-center td-muted">{(safePage - 1) * itemsPerPage + idx + 1}</td>
+                <td className="td-center"><span className="id-badge">{item.id_kecamatan}</span></td>
+                <td className="td-bold">{item.nama}</td>
                 <td>
                   <span className="badge">{item.Kabupaten?.nama || getKabupatenName(item.id_kota_kabupaten)}</span>
                 </td>
                 <td>
                   <div className="action-buttons">
-                    <button className="btn btn-ghost btn-icon" onClick={() => handleOpenModal(item)}>
-                      <Edit2 size={16} />
+                    <button className="btn btn-ghost btn-icon" onClick={() => handleOpenModal(item)} title="Edit">
+                      <Edit2 size={15} />
                     </button>
-                    <button className="btn btn-danger btn-icon" onClick={() => handleDelete(item.id_kecamatan)}>
-                      <Trash2 size={16} />
+                    <button className="btn btn-danger btn-icon" onClick={() => handleDelete(item.id_kecamatan)} title="Hapus">
+                      <Trash2 size={15} />
                     </button>
                   </div>
                 </td>
               </tr>
             ))}
-            {data.length === 0 && (
+            {paginated.length === 0 && (
               <tr>
-                <td colSpan="4" style={{ textAlign: 'center', color: 'var(--text-secondary)' }}>No data found</td>
+                <td colSpan="5" className="td-empty">
+                  {search ? `Tidak ada hasil untuk "${search}"` : 'Belum ada data kecamatan'}
+                </td>
               </tr>
             )}
           </tbody>
         </table>
       </div>
 
+      <Pagination
+        currentPage={safePage}
+        totalPages={totalPages}
+        onPageChange={setCurrentPage}
+        totalItems={filtered.length}
+        itemsPerPage={itemsPerPage}
+        onItemsPerPageChange={setItemsPerPage}
+      />
+
+      {/* ── Modal ── */}
       {isModalOpen && createPortal(
         <div className="modal-overlay">
-          <div className="glass-panel" style={{ position: 'relative' }}>
-            <button
-              className="btn btn-ghost btn-icon"
-              onClick={handleCloseModal}
-              style={{ position: 'absolute', top: '1rem', right: '1rem' }}
-            >
+          <div className="glass-panel modal-panel" style={{ position: 'relative' }}>
+            <button className="btn btn-ghost btn-icon modal-close" onClick={handleCloseModal}>
               <X size={20} />
             </button>
-            <h3>{editingId ? 'Edit Kecamatan' : 'Add Kecamatan'}</h3>
+            <h3>{editingId ? 'Edit Kecamatan' : 'Tambah Kecamatan'}</h3>
             <form onSubmit={handleSubmit}>
               <div className="form-group">
                 <label>Nama Kecamatan</label>
                 <input
                   type="text"
                   className="form-control"
+                  placeholder="cth: Coblong"
                   value={formData.nama}
-                  onChange={(e) => setFormData({ ...formData, nama: e.target.value })}
+                  onChange={e => setFormData({ ...formData, nama: e.target.value })}
                   required
                 />
               </div>
               <div className="form-group">
-                <label>Kabupaten</label>
+                <label>Kabupaten / Kota</label>
                 <select
                   className="form-control"
                   value={formData.id_kota_kabupaten}
-                  onChange={(e) => setFormData({ ...formData, id_kota_kabupaten: e.target.value })}
+                  onChange={e => setFormData({ ...formData, id_kota_kabupaten: e.target.value })}
                   required
                 >
-                  <option value="">Select Kabupaten</option>
+                  <option value="">Pilih Kabupaten</option>
                   {kabupatens.map(kab => (
-                    <option key={kab.id_kota_kabupaten} value={kab.id_kota_kabupaten}>
-                      {kab.nama}
-                    </option>
+                    <option key={kab.id_kota_kabupaten} value={kab.id_kota_kabupaten}>{kab.nama}</option>
                   ))}
                 </select>
               </div>
-              <button type="submit" className="btn btn-primary" style={{ marginTop: '1rem' }}>
-                Save
+              <button type="submit" className="btn btn-primary" style={{ marginTop: '1rem', width: '100%' }}>
+                Simpan
               </button>
             </form>
           </div>
