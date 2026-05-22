@@ -15,11 +15,11 @@ const IMPORT_TEMPLATE_COLS = [
 ];
 
 const Kabupaten = () => {
-  const [data, setData]           = useState([]);
-  const [search, setSearch]       = useState('');
+  const [data, setData] = useState([]);
+  const [search, setSearch] = useState('');
   const [isModalOpen, setModalOpen] = useState(false);
   const [editingId, setEditingId] = useState(null);
-  const [formData, setFormData]   = useState({ nama: '' });
+  const [formData, setFormData] = useState({ nama: '' });
   const [currentPage, setCurrentPage] = useState(1);
   const [itemsPerPage, setItemsPerPage] = useState(10);
   const [showExportMenu, setShowExportMenu] = useState(false);
@@ -125,9 +125,9 @@ const Kabupaten = () => {
   const filtered = data.filter(item =>
     item.nama?.toLowerCase().includes(search.toLowerCase())
   );
-  const totalPages  = Math.max(1, Math.ceil(filtered.length / itemsPerPage));
-  const safePage    = Math.min(currentPage, totalPages);
-  const paginated   = filtered.slice((safePage - 1) * itemsPerPage, safePage * itemsPerPage);
+  const totalPages = Math.max(1, Math.ceil(filtered.length / itemsPerPage));
+  const safePage = Math.min(currentPage, totalPages);
+  const paginated = filtered.slice((safePage - 1) * itemsPerPage, safePage * itemsPerPage);
 
   const handleSearch = (val) => { setSearch(val); setCurrentPage(1); };
 

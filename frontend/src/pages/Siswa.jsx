@@ -21,18 +21,18 @@ const IMPORT_TEMPLATE_COLS = [
 ];
 
 const Siswa = () => {
-  const [data, setData]             = useState([]);
+  const [data, setData] = useState([]);
   const [kabupatens, setKabupatens] = useState([]);
   const [kecamatans, setKecamatans] = useState([]);
-  const [search, setSearch]         = useState('');
+  const [search, setSearch] = useState('');
   const [isModalOpen, setModalOpen] = useState(false);
-  const [editingId, setEditingId]   = useState(null);
+  const [editingId, setEditingId] = useState(null);
   const [currentPage, setCurrentPage] = useState(1);
   const [itemsPerPage, setItemsPerPage] = useState(10);
   const [showExportMenu, setShowExportMenu] = useState(false);
-  const [importing, setImporting]   = useState(false);
-  const [formData, setFormData]     = useState({ nama_siswa: '', id_kota_kabupaten: '', id_kecamatan: '', alamat: '' });
-  const fileInputRef  = useRef();
+  const [importing, setImporting] = useState(false);
+  const [formData, setFormData] = useState({ nama_siswa: '', id_kota_kabupaten: '', id_kecamatan: '', alamat: '' });
+  const fileInputRef = useRef();
   const exportMenuRef = useRef();
   const { addToast, showConfirm } = useToast();
 
@@ -130,10 +130,10 @@ const Siswa = () => {
 
       let success = 0, failed = 0;
       for (const row of rows) {
-        const nama_siswa        = String(row['nama_siswa'] || '').trim();
-        const alamat            = String(row['alamat'] || '').trim();
+        const nama_siswa = String(row['nama_siswa'] || '').trim();
+        const alamat = String(row['alamat'] || '').trim();
         const id_kota_kabupaten = parseInt(row['id_kota_kabupaten']);
-        const id_kecamatan      = parseInt(row['id_kecamatan']);
+        const id_kecamatan = parseInt(row['id_kecamatan']);
         if (!nama_siswa || !alamat || isNaN(id_kota_kabupaten) || isNaN(id_kecamatan)) { failed++; continue; }
         try {
           await api.post('/siswas', { nama_siswa, alamat, id_kota_kabupaten, id_kecamatan });
@@ -161,8 +161,8 @@ const Siswa = () => {
   });
 
   const totalPages = Math.max(1, Math.ceil(filtered.length / itemsPerPage));
-  const safePage   = Math.min(currentPage, totalPages);
-  const paginated  = filtered.slice((safePage - 1) * itemsPerPage, safePage * itemsPerPage);
+  const safePage = Math.min(currentPage, totalPages);
+  const paginated = filtered.slice((safePage - 1) * itemsPerPage, safePage * itemsPerPage);
   const handleSearch = (val) => { setSearch(val); setCurrentPage(1); };
 
   return (
