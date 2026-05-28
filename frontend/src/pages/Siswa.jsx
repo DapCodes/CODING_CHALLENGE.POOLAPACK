@@ -128,21 +128,47 @@ const Siswa = () => {
       const rows = await importFromExcel(file);
       if (!rows.length) { addToast('File Excel kosong', 'error'); return; }
 
+      console.log('🔍 Total rows dari Excel:', rows.length);
+      console.log('🔍 Sample row:', rows[0]);
+      
       let success = 0, failed = 0;
-      for (const row of rows) {
+      const errors = [];
+      
+      for (let idx = 0; idx < rows.length; idx++) {
+        const row = rows[idx];
+        console.log(`\n📝 Row ${idx + 1}:`, row);
+        
         const nama_siswa = String(row['nama_siswa'] || '').trim();
         const alamat = String(row['alamat'] || '').trim();
         const id_kota_kabupaten = parseInt(row['id_kota_kabupaten']);
         const id_kecamatan = parseInt(row['id_kecamatan']);
-        if (!nama_siswa || !alamat || isNaN(id_kota_kabupaten) || isNaN(id_kecamatan)) { failed++; continue; }
+        
+        console.log(`   nama: "${nama_siswa}" | alamat: "${alamat}" | kab: ${id_kota_kabupaten} | kec: ${id_kecamatan}`);
+        
+        if (!nama_siswa || !alamat || isNaN(id_kota_kabupaten) || isNaN(id_kecamatan)) { 
+          const reason = !nama_siswa ? 'nama_siswa kosong' : !alamat ? 'alamat kosong' : isNaN(id_kota_kabupaten) ? 'id_kota_kabupaten invalid' : 'id_kecamatan invalid';
+          console.warn(`   ❌ Validasi gagal: ${reason}`);
+          errors.push(`Row ${idx + 1}: ${reason}`);
+          failed++; 
+          continue; 
+        }
+        
         try {
           await api.post('/siswas', { nama_siswa, alamat, id_kota_kabupaten, id_kecamatan });
+          console.log(`   ✅ Berhasil disimpan`);
           success++;
-        } catch { failed++; }
+        } catch (apiErr) { 
+          console.error(`   ❌ API Error:`, apiErr.response?.data || apiErr.message);
+          errors.push(`Row ${idx + 1}: ${apiErr.response?.data?.error || apiErr.message}`);
+          failed++; 
+        }
       }
+      
       fetchData();
+      if (errors.length > 0) console.error('📋 Error details:', errors);
       addToast(`Import selesai: ${success} berhasil${failed ? `, ${failed} gagal` : ''}`, success ? 'success' : 'error');
     } catch (err) {
+      console.error('❌ Import error:', err);
       addToast(err.message, 'error');
     } finally {
       setImporting(false);
